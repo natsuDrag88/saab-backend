@@ -20,13 +20,12 @@ namespace saab.Services.Concentrate
         private readonly IMedidorOperatiRepository _medidorOperatiRepository;
         private readonly IMedidorRepository _medidorRepository;
         private readonly IPeriodoBipCfeRepository _periodoBipCfeRepository;
-        private readonly ICargaDescargaBateria _cargaDescargaBateria;
 
         public ConcentrateService(IFacturacionRepository facturacionRepository, ISavingService savingService,
             ICentroDeCargaRepository centroDeCargaRepository, IHierarchyService hierarchyService, 
             IMedidorRepository medidorRepository, IMedidorOperatiRepository medidorOperatiRepository, 
             IMedidorEtbRepository medidorEtbRepository, IMedidorBessRepository medidorBessRepository, 
-            IPeriodoBipCfeRepository periodoBipCfeRepository, ICargaDescargaBateria cargaDescargaBateria)
+            IPeriodoBipCfeRepository periodoBipCfeRepository)
         {
             _facturacionRepository = facturacionRepository;
             _savingService = savingService;
@@ -37,7 +36,6 @@ namespace saab.Services.Concentrate
             _medidorEtbRepository = medidorEtbRepository;
             _medidorBessRepository = medidorBessRepository;
             _periodoBipCfeRepository = periodoBipCfeRepository;
-            _cargaDescargaBateria = cargaDescargaBateria;
         }
 
         public List<ConcentrateMonth> GetConcentrate(Dictionary<string, string> dictPeriod)
@@ -47,69 +45,22 @@ namespace saab.Services.Concentrate
             return (from period in listPeriods select GetValuesbyMonth(period: period, projects: listProjects) into concentrateMonth let valueConcentrate = concentrateMonth.AhorroBruto + concentrateMonth.AhorroNeto + concentrateMonth.TotalFacurado + concentrateMonth.TotalAjusteMesAnterior + concentrateMonth.TotalFacturadoCfe + concentrateMonth.AhorroBrutoPunta + concentrateMonth.AhorroBrutoCapacidad + concentrateMonth.AhorroBrutoDistribucion where valueConcentrate != 0 select concentrateMonth).ToList();
         }
 
-        public ConcentrateResult GetConcentrateTypePeriod(InputConcentrateTypePeriod inputConcentrate)
+        public List<ConcentrateTypePeriod> GetConcentrateTypePeriod(InputConcentrateTypePeriod inputConcentrate)
         {
             var initialDate = DateUtil.GetInitialDate(date: inputConcentrate.FechaInicial);
             var finalDate = DateUtil.GetFinalDate(date: inputConcentrate.FechaFinal);
-            ConcentrateResult resultPeriod = null;
-            Medidore medidoreConsumoCfe;
-            Medidore medidoreCargaBateria;
-            Medidore medidoreEstadoBateria;
-            switch(inputConcentrate.TipoMedicion) 
+            var resultProvider = _medidorRepository.GetNameProvider(idProvider: inputConcentrate.Medidor);
+            var resultPeriod = resultProvider.Provedor switch
             {
-                case "Medición Principal":
-                    medidoreConsumoCfe = _medidorRepository.GetIdProvider(typeProvider: "OPE", typeSource: "TCFE");
-                    medidoreCargaBateria = _medidorRepository.GetIdProvider(typeProvider: "OPE", typeSource: "SAAS");
-                    medidoreEstadoBateria = _medidorRepository.GetIdProvider(typeProvider: "ETB", typeSource: "SAAS");
-                    resultPeriod = new ConcentrateResult()
-                    {
-                        ConsumoCfe = medidoreConsumoCfe != null ? _medidorOperatiRepository.GetConcentratePeriodTypeOpeKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreConsumoCfe.Id.ToString()) : new List<ConcentrateTypePeriodKwE>(),
-                        CargaBateria = medidoreCargaBateria != null ? _medidorOperatiRepository.GetConcentratePeriodTypeOpeKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString()) : new List<ConcentrateTypePeriodKwE>(),
-                        DescargaBateria = medidoreCargaBateria != null ? _medidorOperatiRepository.GetConcentratePeriodTypeOpPeriodKwRs(
-                            initialDate: initialDate, finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString()) : new List<ConcentrateTypePeriodKwR>(),
-                        EstadoBateria = medidoreEstadoBateria != null ? _cargaDescargaBateria.GetConcentratePeriod(
-                            idMeter: medidoreEstadoBateria.Id, initialDate: initialDate, finalDate: finalDate) : new List<ConcentrateBattery>()
-                    };
-                    break;
-                case "Medición Respaldo 1":
-                    medidoreConsumoCfe = _medidorRepository.GetIdProvider(typeProvider: "ETB", typeSource: "TCFE");
-                    medidoreCargaBateria = _medidorRepository.GetIdProvider(typeProvider: "ETB", typeSource: "SAAS");
-                    resultPeriod = new ConcentrateResult()
-                    {
-                        ConsumoCfe = medidoreConsumoCfe != null ? _medidorEtbRepository.GetConcentratePeriodTypeEtbKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreConsumoCfe.Id.ToString()) : new List<ConcentrateTypePeriodKwE>(),
-                        CargaBateria = medidoreCargaBateria != null ? _medidorEtbRepository.GetConcentratePeriodTypeEtbKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString())  : new List<ConcentrateTypePeriodKwE>(),
-                        DescargaBateria = medidoreCargaBateria != null ? _medidorEtbRepository.GetConcentratePeriodTypeEtbKwRs(
-                            initialDate: initialDate, finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString())  : new List<ConcentrateTypePeriodKwR>(),
-                        EstadoBateria = medidoreCargaBateria != null ? _cargaDescargaBateria.GetConcentratePeriod(
-                            idMeter: medidoreCargaBateria.Id, initialDate: initialDate, finalDate: finalDate) : new List<ConcentrateBattery>()
-                        
-                    };
-                    break;
-                case "Medición Respaldo 2":
-                    medidoreConsumoCfe = _medidorRepository.GetIdProvider(typeProvider: "BESS", typeSource: "TCFE");
-                    medidoreCargaBateria = _medidorRepository.GetIdProvider(typeProvider: "BESS", typeSource: "SAAS");
-                    medidoreEstadoBateria = _medidorRepository.GetIdProvider(typeProvider: "ETB", typeSource: "SAAS");
-                    resultPeriod = new ConcentrateResult()
-                    {
-                        
-                        ConsumoCfe = medidoreConsumoCfe != null ? _medidorBessRepository.GetConcentratePeriodTypeBessKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreConsumoCfe.Id.ToString()) : new List<ConcentrateTypePeriodKwE>(),
-                        CargaBateria = medidoreCargaBateria != null ? _medidorBessRepository.GetConcentratePeriodTypeBessKwEs(initialDate: initialDate,
-                            finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString()) : new List<ConcentrateTypePeriodKwE>(),
-                        DescargaBateria = medidoreCargaBateria != null ? _medidorBessRepository.GetConcentratePeriodTypeBessKwRs(
-                            initialDate: initialDate, finalDate: finalDate, idMeter: medidoreCargaBateria.Id.ToString()) : new List<ConcentrateTypePeriodKwR>(),
-                        EstadoBateria = medidoreCargaBateria != null ? _cargaDescargaBateria.GetConcentratePeriod(
-                            idMeter: medidoreEstadoBateria.Id, initialDate: initialDate, finalDate: finalDate) : new List<ConcentrateBattery>()
-                    };
-                    break;
-                default:
-                    // code block
-                    break;
-            }
+                "OPE" => _medidorOperatiRepository.GetConcentratePeriodTypeOpe(initialDate: initialDate,
+                    finalDate: finalDate, idMeter: inputConcentrate.Medidor),
+                "BESS" => _medidorBessRepository.GetConcentratePeriodTypeBess(initialDate: initialDate,
+                    finalDate: finalDate, idMeter: inputConcentrate.Medidor),
+                "ETB" => _medidorEtbRepository.GetConcentratePeriodTypeEtb(initialDate: initialDate,
+                    finalDate: finalDate, idMeter: inputConcentrate.Medidor),
+                _ => null
+            };
+
             return resultPeriod;
         }
 

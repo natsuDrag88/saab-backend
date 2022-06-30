@@ -45,12 +45,5 @@ namespace saab.Repository.DBMysql
                     TarifaCfe = cc.TarifaCfe
                 }).FirstOrDefault();
         }
-
-        public Medidore GetIdProvider(string typeProvider, string typeSource)
-        {
-            return _context.Medidores.
-                Where(m=> m.Provedor == typeProvider).
-                FirstOrDefault(m => m.FuenteDeInformacion == typeSource);
-        }
     }
 }
