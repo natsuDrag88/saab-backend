@@ -10,5 +10,9 @@ namespace saab.Repository
     {
         public List<ConcentrateTypePeriod> GetConcentratePeriodTypeEtb(DateTime initialDate, DateTime finalDate,
             string idMeter);
+        public List<ConcentrateTypePeriodKwE> GetConcentratePeriodTypeEtbKwEs(DateTime initialDate, DateTime finalDate,
+            string idMeter);
+        public List<ConcentrateTypePeriodKwR> GetConcentratePeriodTypeEtbKwRs(DateTime initialDate, DateTime finalDate,
+            string idMeter);
     }
 }

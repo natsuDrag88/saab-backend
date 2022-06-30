@@ -7,5 +7,7 @@
         public string FechaFinal { get; set; }
         
         public string Medidor { get; set; }
+        
+        public string TipoMedicion { get; set; }
     }
 }

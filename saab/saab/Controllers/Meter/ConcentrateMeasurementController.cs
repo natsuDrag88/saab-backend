@@ -35,7 +35,8 @@ namespace saab.Controllers.Meter
         {
             try
             {
-                var resultConcentrateTypePeriod = _concentrateService.GetConcentrateTypePeriod(inputConcentrate: inputConcentrate);
+                var resultConcentrateTypePeriod = _concentrateService.GetConcentrateTypePeriod(
+                    inputConcentrate: inputConcentrate);
                 return await Task.FromResult(StatusCode(StatusCodes.Status200OK,
                     JsonConvert.SerializeObject(resultConcentrateTypePeriod)));
             }

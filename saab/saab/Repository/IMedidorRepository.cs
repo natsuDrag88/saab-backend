@@ -9,5 +9,6 @@ namespace saab.Repository
         List<DataMeter> GetDataMeter(string centroCarga);
         public Medidore GetNameProvider(string idProvider);
         public RateMeter GetRateCfe(string idProvider);
+        public Medidore GetIdProvider(string typeProvider, string typeSource);
     }
 }

@@ -75,6 +75,7 @@ namespace saab
             services.AddScoped<IMedidorBessRepository, MedidorBessRepository>();
             services.AddScoped<IMedidorEtbRepository, MedidorEtbRepository>();
             services.AddScoped<IMedidorOperatiRepository, MedidorOperatiRepository>();
+            services.AddScoped<ICargaDescargaBateria, CargaDescargaBateria>();
 
             services.AddScoped<IElectricRates, ElectricRates>();
             services.AddScoped<IDetailAlertService, DetailAlertService>();
